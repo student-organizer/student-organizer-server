@@ -7,8 +7,6 @@
 var app = require('../app');
 var debug = require('debug')('student-organizer-server:server');
 var http = require('http');
-var jwt = require('jsonwebtoken');
-
 
 /**
  * Get port from environment and store in Express.
@@ -23,12 +21,7 @@ app.set('port', port);
 
 var server = http.createServer(app);
 
-
-/**
- * Create socket.io server
- */
-
-var io = require('socket.io')(server);
+var chat = require('../services/chat').serve(server);
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -97,32 +90,3 @@ function onListening() {
     : 'port ' + addr.port;
   debug('Listening on ' + bind);
 }
-
-/**
- * Event listeners for socket.io server
- */
-
-let msgs = [];
-
-function auth_user(combo){
-  return combo.pass === 'geheim123';
-}
-
-io.on('connection', function onSocketIOConnection(socket){
-  console.log('A user connected to socket.io.');
-  for(let msg in msgs){
-      socket.emit('new message', msgs[msg]);
-  }
-  socket.on('auth', combo => {
-    if(auth_user(combo)){
-      var token = jwt.sign({user: combo.user}, 'MySuperSecretKey');
-      socket.emit('token', token);
-
-      socket.on('chat message', msg => {
-        io.emit('new message', combo.user + ": " + msg);
-        msgs.push(msg);
-      });
-    }
-    socket.emit('auth_error', 'Auth failed!');
-  });
-});

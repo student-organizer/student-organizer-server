@@ -12,23 +12,35 @@
 <script src="/socket.io/socket.io.js"></script>
 <script>
 	var socket = io();
+	let auth_token = '';
+
 	$("#message-input").submit(event=>{
 		event.preventDefault();
 		let msg = $('#msg');
-		socket.emit('chat message', msg.val());
+		socket.emit('send message', msg.val());
 		msg.val('');
-		return false;
 	});
+
 	socket.on('new message', msg => {
-		$("#messages").append($('<li>').text(msg));
+		//Escape User Strings
+		var escaped_author = $('<div>').text(msg.author).html();
+		var escaped_message = $('<div>').text(msg.msg).html();
+
+		let elem = $('<li>').html( '<b>'+escaped_author+'</b>: ' + escaped_message);
+		$('#messages').append(elem);
 	});
+
+	//Get the auth token with username and password
 	$('#auth').submit(event=>{
 		event.preventDefault();
 		let combo = {'user': $('#username').val(), 'pass': $('#password').val()};
-		socket.emit('auth', combo);
-		return false;
+		socket.emit('get token', combo);
 	});
+
+	//Use the auth token to sign in once it's returned by the server
 	socket.on('token', token => {
+		auth_token = token;
+		socket.emit('auth', token);
 		console.log(token);
 	});
 </script>
