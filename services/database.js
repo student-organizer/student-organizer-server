@@ -62,9 +62,27 @@ function IsUserExisting(username)
         var query = { username: username };
         dbo.collection("userdata").find(query).toArray(function(err, result)
         {
-            if (err) throw error;
             if (result == "") resolve(false);
             if (result != "") resolve(true);
+        });
+    });
+}
+
+/**
+ * Returns userdata as an object containing username and password
+ */
+
+function GetUserData(username)
+{
+    return new Promise(function(resolve, reject)
+    {
+        var dbo = client.db("studentorganizer");
+        var query = { username: username };
+        dbo.collection("userdata").find(query).toArray(function(err, result)
+        {
+            if (err) throw error;
+            var ret = {user : result[0], pass: result[1] };
+            resolve(ret);
         });
     });
 }
@@ -72,6 +90,7 @@ function IsUserExisting(username)
 module.exports.ConnectToDatabase = ConnectToDatabase;
 module.exports.CreateUser = CreateUser;
 module.exports.IsUserExisting = IsUserExisting;
+module.exports.GetUserData = GetUserData;
 
 
 

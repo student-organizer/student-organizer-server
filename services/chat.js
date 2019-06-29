@@ -10,9 +10,19 @@ let io;
 
 function onConnection(socket) {
 
-	socket.on('get token', combo =>{
+	socket.on('get token', async combo =>
+	{
+		let validlogged = await auth.loginOnDatabase(combo.user, combo.pass);
+
+		if (!validlogged)
+			return false;
+
 		let auth_token = auth.authenticate(combo);
 		socket.emit('token', auth_token)
+	});
+
+	socket.on('register', combo =>{
+		auth.register(combo);
 	});
 
 	socket.on('auth', token => {

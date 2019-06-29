@@ -9,6 +9,11 @@
 	<input id="password"/>
 	<button>login</button>
 </form>
+<form id="register">
+    <input id="username_reg"/>
+    <input id="password_reg"/>
+    <button>register</button>
+</form>
 <script src="/socket.io/socket.io.js"></script>
 <script>
 	var socket = io();
@@ -37,7 +42,14 @@
 		socket.emit('get token', combo);
 	});
 
-	//Use the auth token to sign in once it's returned by the server
+	//Create account with username and password
+    $('#register').submit(event=>{
+        event.preventDefault();
+        let combo = {'user': $('#username_reg').val(), 'pass': $('#password_reg').val()};
+        socket.emit('register', combo);
+    });
+
+    //Use the auth token to sign in once it's returned by the server
 	socket.on('token', token => {
 		auth_token = token;
 		socket.emit('auth', token);
