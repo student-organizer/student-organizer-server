@@ -29,7 +29,7 @@ function ConnectToDatabase_promise()
     });
 }
 
-async function ConnectToDatabase()
+module.exports.ConnectToDatabase = async function()
 {
     let connection = await ConnectToDatabase_promise();
     client = connection;
@@ -37,9 +37,11 @@ async function ConnectToDatabase()
 
 /**
  * Creates a user with parameters user and password_hash on the database
+ *
+ * @param username: plain text identifier for an account
+ * @param password_hash: hashed password for an account
  */
-
-function CreateUser(username, password_hash)
+module.exports.CreateUser = function(username, password_hash)
 {
     var dbo = client.db("studentorganizer");
     var myobj = {username: username, password: password_hash};
@@ -51,10 +53,12 @@ function CreateUser(username, password_hash)
 }
 
 /**
- * Returns true/false whether user was already created on the database
+ * Checks whether an user account already exists
+ *
+ * @param username: identifier to search in the database for an account
+ * @returns whether user was already exists on the database
  */
-
-function IsUserExisting(username)
+module.exports.isUserExisting = function(username)
 {
     return new Promise(function(resolve, reject)
     {
@@ -69,10 +73,13 @@ function IsUserExisting(username)
 }
 
 /**
- * Returns userdata as an object containing username and password
+ * Gets userdata by searching for the username in the database
+ *
+ * @param username: identifier to search in the database for an account
+ * @returns an object with username and hashed password
+ * @constructor
  */
-
-function GetUserData(username)
+module.exports.getUserData =  function(username)
 {
     return new Promise(function(resolve, reject)
     {
@@ -86,11 +93,6 @@ function GetUserData(username)
         });
     });
 }
-
-module.exports.ConnectToDatabase = ConnectToDatabase;
-module.exports.CreateUser = CreateUser;
-module.exports.IsUserExisting = IsUserExisting;
-module.exports.GetUserData = GetUserData;
 
 
 

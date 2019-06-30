@@ -1,15 +1,24 @@
 let auth = require('./auth');
 
-//IE8 Date.now compatibility
-if (!Date.now) {
-	Date.now = function() { return new Date().getTime(); }
-}
-
 let recent_msgs = []
 let io;
 
-function onConnection(socket) {
+/**
+ * IE8 Date.now compatibility
+ */
+if (!Date.now)
+{
+	Date.now = function() { return new Date().getTime(); }
+}
 
+/**
+ * Handles the initial connection between the client and the server
+ */
+function onConnection(socket)
+{
+	/**
+	 * @emits JSON token
+	 */
 	socket.on('get token', async combo =>
 	{
 		let validlogged = await auth.loginOnDatabase(combo.user, combo.pass);
@@ -21,19 +30,29 @@ function onConnection(socket) {
 		socket.emit('token', auth_token)
 	});
 
-	socket.on('register', combo =>{
+	/**
+	 * Executes database registration
+	 */
+	socket.on('register', combo =>
+	{
 		auth.register(combo);
 	});
 
-	socket.on('auth', token => {
+	/**
+	 * Authentificates user through token
+	 */
+	socket.on('auth', token =>
+	{
 
 		let user = auth.validate(token);
 
 		if(user != null){ //Auth successful
 
 			//Send message
-			socket.on('send message', msg => {
-				let message = {
+			socket.on('send message', msg =>
+			{
+				let message =
+					{
 					timestamp: Date.now(),
 					author: user.signedInAs,
 					msg: msg,
@@ -47,19 +66,21 @@ function onConnection(socket) {
 			});
 
 			//Give new clients the most recent messages
-			recent_msgs.forEach(msg => {
+			recent_msgs.forEach(msg =>
+			{
 				socket.emit('new message', msg);
 			});
 
-		}else{
+		}
+		else
+		{
 			socket.emit('auth_error', "Invalid credentials.");
 		}
 	});
 }
 
-module.exports = {
-	serve: function(http){
-		io = require('socket.io')(http);
-		io.on('connection', onConnection);
-	}
-};
+module.exports.serve = function(http)
+{
+	io = require('socket.io')(http);
+	io.on('connection', onConnection);
+}

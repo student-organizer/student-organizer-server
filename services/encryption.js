@@ -2,10 +2,13 @@ var bCrypt = require('bcrypt');
 const saltRounds = 10;
 
 /**
- * Hashes a password (as a parameter any kind of string could be used)
+ * Hashes a password
+ *
+ * @param password: any string to hash
+ * @returns hash as string
+ * @constructor
  */
-
-async function GenerateHash(password)
+module.exports.generateHash = function(password)
 {
     return new Promise(function(resolve, reject)
     {
@@ -18,9 +21,12 @@ async function GenerateHash(password)
 
 /**
  * Checks if a plain password and a hash match
+ *
+ * @param password: plain text to compare with hash
+ * @param password_hash: hashed plain text
+ * @returns whether password_hash is the hashed version of password
  */
-
-async function DoesPasswordMatch(password, password_hash)
+module.exports.doesPasswordMatch = function(password, password_hash)
 {
     return new Promise(function (resolve, reject)
     {
@@ -31,7 +37,4 @@ async function DoesPasswordMatch(password, password_hash)
         });
     });
 }
-
-module.exports.GenerateHash = GenerateHash;
-module.exports.DoesPasswordMatch = DoesPasswordMatch;
 

@@ -19,14 +19,16 @@
 	var socket = io();
 	let auth_token = '';
 
-	$("#message-input").submit(event=>{
+	$("#message-input").submit(event =>
+    {
 		event.preventDefault();
 		let msg = $('#msg');
 		socket.emit('send message', msg.val());
 		msg.val('');
 	});
 
-	socket.on('new message', msg => {
+	socket.on('new message', msg =>
+    {
 		//Escape User Strings
 		var escaped_author = $('<div>').text(msg.author).html();
 		var escaped_message = $('<div>').text(msg.msg).html();
@@ -36,21 +38,24 @@
 	});
 
 	//Get the auth token with username and password
-	$('#auth').submit(event=>{
+	$('#auth').submit(event =>
+    {
 		event.preventDefault();
 		let combo = {'user': $('#username').val(), 'pass': $('#password').val()};
 		socket.emit('get token', combo);
 	});
 
 	//Create account with username and password
-    $('#register').submit(event=>{
+    $('#register').submit(event =>
+    {
         event.preventDefault();
         let combo = {'user': $('#username_reg').val(), 'pass': $('#password_reg').val()};
         socket.emit('register', combo);
     });
 
     //Use the auth token to sign in once it's returned by the server
-	socket.on('token', token => {
+	socket.on('token', token =>
+    {
 		auth_token = token;
 		socket.emit('auth', token);
 		console.log(token);
