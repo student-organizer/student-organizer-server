@@ -46,7 +46,7 @@ module.exports.loginOnDatabase = async function(username, password)
 		return false;
 
 	var userData = await db.getUserData(username);
-	var passwordMatch = await enc.doesPasswordMatch(password, userData.user.password);
+	var passwordMatch = await enc.doesPasswordMatch(password, userData.password);
 
 	if (!passwordMatch)
 		return false;

@@ -88,7 +88,7 @@ module.exports.getUserData =  function(username)
         dbo.collection("userdata").find(query).toArray(function(err, result)
         {
             if (err) throw error;
-            var ret = {user : result[0], pass: result[1] };
+            var ret = {user : result[0].username, pass: result[0].password };
             resolve(ret);
         });
     });
