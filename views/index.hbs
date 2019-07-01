@@ -2,7 +2,8 @@
 <ul id="messages">
 </ul>
 <form id="message-input">
-	<input id="msg" autocomplete="off" /><button>Send</button>
+	<input id="msg" autocomplete="off" />
+    <button>Send</button>
 </form>
 <form id="auth">
 	<input id="username"/>
@@ -14,6 +15,12 @@
     <input id="password_reg"/>
     <button>register</button>
 </form>
+<form id="search">
+    <input id="searchquery" />
+    <button>Search</button>
+</form>
+<ul id="users">
+</ul>
 <script src="/socket.io/socket.io.js"></script>
 <script>
 	var socket = io();
@@ -25,16 +32,6 @@
 		let msg = $('#msg');
 		socket.emit('send message', msg.val());
 		msg.val('');
-	});
-
-	socket.on('new message', msg =>
-    {
-		//Escape User Strings
-		var escaped_author = $('<div>').text(msg.author).html();
-		var escaped_message = $('<div>').text(msg.msg).html();
-
-		let elem = $('<li>').html( '<b>'+escaped_author+'</b>: ' + escaped_message);
-		$('#messages').append(elem);
 	});
 
 	//Get the auth token with username and password
@@ -51,6 +48,35 @@
         event.preventDefault();
         let combo = {'user': $('#username_reg').val(), 'pass': $('#password_reg').val()};
         socket.emit('register', combo);
+    });
+
+    //Executes the search
+    $('#search').submit(event =>
+    {
+        event.preventDefault();
+        var searchquery = $('#searchquery').val();
+        socket.emit('searchuser', searchquery);
+    });
+
+    //Sends the found user profiles to the user
+    socket.on('search finished', search =>
+    {
+        $('#users').empty();
+        search.forEach(function(username){
+            let elem = $('<li>').html(username);
+            $('#users').append(elem);
+        });
+    });
+
+    //Displays the new message on the screen
+    socket.on('new message', msg =>
+    {
+        //Escape User Strings
+        var escaped_author = $('<div>').text(msg.author).html();
+        var escaped_message = $('<div>').text(msg.msg).html();
+
+        let elem = $('<li>').html( '<b>'+escaped_author+'</b>: ' + escaped_message);
+        $('#messages').append(elem);
     });
 
     //Use the auth token to sign in once it's returned by the server

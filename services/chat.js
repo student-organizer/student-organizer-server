@@ -1,4 +1,5 @@
-let auth = require('./auth');
+let auth = require('./auth.js');
+let db = require('./database.js');
 
 let recent_msgs = []
 let io;
@@ -46,13 +47,26 @@ function onConnection(socket)
 
 		let user = auth.validate(token);
 
-		if(user != null){ //Auth successful
+		/**
+		 * Checks whether user is authentificated
+		 */
+		if(user != null)
+		{
+			/**
+			 * Sends most recent messages to user
+			 */
+			socket.on('searchuser', async msg =>
+			{
+				var searchresults = await db.FindUsers(msg);
+				socket.emit('search finished', searchresults);
+			});
 
-			//Send message
+			/**
+			 * Sends message
+			 */
 			socket.on('send message', msg =>
 			{
-				let message =
-					{
+				let message = {
 					timestamp: Date.now(),
 					author: user.signedInAs,
 					msg: msg,
@@ -65,7 +79,10 @@ function onConnection(socket)
 					recent_msgs.splice(0, recent_msgs.length-50)
 			});
 
-			//Give new clients the most recent messages
+
+			/**
+			 * Sends most recent messages to client
+			 */
 			recent_msgs.forEach(msg =>
 			{
 				socket.emit('new message', msg);

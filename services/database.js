@@ -77,7 +77,6 @@ module.exports.isUserExisting = function(username)
  *
  * @param username: identifier to search in the database for an account
  * @returns an object with username and hashed password
- * @constructor
  */
 module.exports.getUserData =  function(username)
 {
@@ -90,6 +89,30 @@ module.exports.getUserData =  function(username)
             if (err) throw error;
             var ret = {user : result[0].username, pass: result[0].password };
             resolve(ret);
+        });
+    });
+}
+
+/**
+ * Finds users based on a search query
+ *
+ * @param searchquery: self explanatory
+ * @returns array of usernames from the users found
+ */
+module.exports.FindUsers = function(searchquery)
+{
+    return new Promise(function(resolve, reject)
+    {
+        var dbo = client.db("studentorganizer");
+        dbo.collection("userdata").find({username: {$regex: searchquery}}).toArray(function(err, result)
+        {
+            var users = [];
+
+            result.forEach(function(user){
+                users.push(user.username);
+            });
+
+            resolve(users);
         });
     });
 }
