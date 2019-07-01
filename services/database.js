@@ -10,7 +10,7 @@ function ConnectToDatabase_promise()
 {
     return new Promise(function(resolve, reject)
     {
-        mongoclient.connect(url, {'useNewUrlParser': true}, function(err, client)
+        mongoclient.connect(url, {'useNewUrlParser': true}, function(err, client_new)
         {
             if (err)
             {
@@ -23,7 +23,8 @@ function ConnectToDatabase_promise()
                 {
                     console.log("\x1b[32m%s\x1b[0m", "Successfully connected to the database.")
                 }
-                resolve(client);
+
+                resolve(client_new);
             }
         });
     });
