@@ -42,7 +42,7 @@ function onConnection(socket)
 	/**
 	 * Authentificates user through token
 	 */
-	socket.on('auth', token =>
+	socket.on('auth', async token =>
 	{
 
 		let user = auth.validate(token);
@@ -53,11 +53,33 @@ function onConnection(socket)
 		if(user != null)
 		{
 			/**
+			 * Adds a friend to the user's friendlist
+			 */
+			socket.on('addfriend', async friend =>
+			{
+				var userdata = await db.getUserData(user.signedInAs);
+				var friends = userdata.friends;
+
+				for (var i = 0; i < friends.length; i++)
+				{
+					if (friends[i] == friend)
+						return;
+				}
+
+				await db.addFriend(user.signedInAs, friend);
+
+				userdata = await db.getUserData(user.signedInAs);
+				friends = userdata.friends;
+
+				socket.emit('friendlist', friends);
+			});
+
+			/**
 			 * Sends most recent messages to user
 			 */
 			socket.on('searchuser', async searchquery =>
 			{
-				var searchresults = await db.FindUsers(searchquery, user.signedInAs);
+				var searchresults = await db.findUsers(searchquery, user.signedInAs);
 				socket.emit('search finished', searchresults);
 			});
 
@@ -79,6 +101,12 @@ function onConnection(socket)
 					recent_msgs.splice(0, recent_msgs.length-50)
 			});
 
+			/**
+			 * Sends friendlist after auth
+			 */
+			var userdata = await db.getUserData(user.signedInAs);
+			var friends = userdata.friends;
+			socket.emit('friendlist', friends);
 
 			/**
 			 * Sends most recent messages to client
@@ -87,7 +115,6 @@ function onConnection(socket)
 			{
 				socket.emit('new message', msg);
 			});
-
 		}
 		else
 		{

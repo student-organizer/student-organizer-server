@@ -42,10 +42,10 @@ module.exports.ConnectToDatabase = async function()
  * @param username: plain text identifier for an account
  * @param password_hash: hashed password for an account
  */
-module.exports.CreateUser = function(username, password_hash)
+module.exports.createUser = function(username, password_hash)
 {
     var dbo = client.db("studentorganizer");
-    var myobj = {username: username, password: password_hash};
+    var myobj = {username: username, password: password_hash, friends: []};
     dbo.collection("userdata").insertOne(myobj, function(err, res)
     {
         if (err) throw error;
@@ -88,7 +88,11 @@ module.exports.getUserData =  function(username)
         dbo.collection("userdata").find(query).toArray(function(err, result)
         {
             if (err) throw error;
-            var ret = {user : result[0].username, pass: result[0].password };
+
+            var ret = {user : result[0].username, pass: result[0].password, friends: result[0].friends };
+            if (typeof ret.friends === 'undefined' || ret.friends == null)
+                ret.friends = [];
+
             resolve(ret);
         });
     });
@@ -98,9 +102,10 @@ module.exports.getUserData =  function(username)
  * Finds users based on a search query
  *
  * @param searchquery: self explanatory
+ * @param user_toexclude: user to exclude from the list as he is the user making the request
  * @returns array of usernames from the users found
  */
-module.exports.FindUsers = function(searchquery)
+module.exports.findUsers = function(searchquery, user_toexclude)
 {
     return new Promise(function(resolve, reject)
     {
@@ -110,6 +115,9 @@ module.exports.FindUsers = function(searchquery)
             var users = [];
 
             result.forEach(function(user){
+                if (user.username === user_toexclude)
+                    return;
+
                 users.push(user.username);
             });
 
@@ -117,6 +125,62 @@ module.exports.FindUsers = function(searchquery)
         });
     });
 }
+
+/**
+ * Adds a friend to a specific user
+ *
+ * @param user: user who initiated the adding process
+ * @param friend: user who gets added
+ */
+module.exports.addFriend = async function(user, friend)
+{
+    var dbo = client.db("studentorganizer");
+    var userdata = await this.getUserData(user);
+    var friends = userdata.friends;
+
+    friends.push(friend);
+
+    dbo.collection("userdata").updateOne
+    (
+        {"username": user},
+        {
+            $set: {"friends": friends},
+        }
+    );
+}
+
+/**
+ * Removes a friend from a one's friendlist
+ *
+ * @param user: user who initiated the removal process
+ * @param friend: friend of user who gets removed from user's friendlist
+ * @constructor
+ */
+module.exports.removeFriend = async function(user, friend)
+{
+    var dbo = client.db("studentorganizer");
+    var userdata = await this.getUserData(user);
+    var friends = userdata.friends;
+    var friends_new = [];
+
+    friends.forEach(function(val)
+    {
+        if (val === friend)
+            return;
+
+        friends_new.push(val);
+    });
+
+    dbo.collection("userdata").updateOne
+    (
+        {"username": user},
+        {
+            $set: {"friends": friends_new},
+        }
+    );
+}
+
+
 
 
 

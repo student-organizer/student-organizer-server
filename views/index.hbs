@@ -19,12 +19,20 @@
     <input id="searchquery" />
     <button>Search</button>
 </form>
-<ul id="users">
+<form id="addfriend">
+    <ul id="users">
+        <li>Search for users to add friends.</li>
+    </ul>
+    <button>Add Friend</button>
+</form>
+<p>Friendlist:</p>
+<ul id="friendlist">
 </ul>
 <script src="/socket.io/socket.io.js"></script>
 <script>
 	var socket = io();
 	let auth_token = '';
+	let user_selected = '';
 
 	$("#message-input").submit(event =>
     {
@@ -48,6 +56,8 @@
         event.preventDefault();
         let combo = {'user': $('#username_reg').val(), 'pass': $('#password_reg').val()};
         socket.emit('register', combo);
+
+        console.log()
     });
 
     //Executes the search
@@ -58,13 +68,45 @@
         socket.emit('searchuser', searchquery);
     });
 
+    //Executes the search
+    $('#addfriend').submit(event =>
+    {
+        event.preventDefault();
+
+        if (user_selected === '')
+            return;
+
+        socket.emit('addfriend', user_selected);
+    });
+
+    //Gets recent friendlist
+    socket.on('friendlist', friends =>
+    {
+        $('#friendlist').empty();
+        friends.forEach(function(username)
+        {
+            let elem = $('<li>').html(username);
+            $('#friendlist').append(elem);
+        });
+    });
+
     //Sends the found user profiles to the user
     socket.on('search finished', search =>
     {
         $('#users').empty();
-        search.forEach(function(username){
+        search.forEach(function(username)
+        {
             let elem = $('<li>').html(username);
+            elem[0].style.color = 'inherit';
             $('#users').append(elem);
+        });
+
+        $("#users li").click(function()
+        {
+            $("#users li").css("color","inherit");
+            $(this).css("color","green");
+            console.log(this.textContent);
+            user_selected = this.textContent;
         });
     });
 
