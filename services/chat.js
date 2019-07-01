@@ -36,7 +36,7 @@ function onConnection(socket)
 	 */
 	socket.on('register', combo =>
 	{
-		auth.register(combo);
+		auth.register(combo.user, combo.pass);
 	});
 
 	/**
@@ -55,9 +55,9 @@ function onConnection(socket)
 			/**
 			 * Sends most recent messages to user
 			 */
-			socket.on('searchuser', async msg =>
+			socket.on('searchuser', async searchquery =>
 			{
-				var searchresults = await db.FindUsers(msg);
+				var searchresults = await db.FindUsers(searchquery, user.signedInAs);
 				socket.emit('search finished', searchresults);
 			});
 
