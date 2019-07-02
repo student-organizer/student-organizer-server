@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+	<title>{{title}}</title>
+	<link rel="stylesheet" type="text/css" href="/stylesheets/login.css"/>
+</head>
+
+<body>
+
+<form id="login">
+	<h1>Log In</h1>
+	<fieldset id="inputs">
+		<input id="username" type="text" placeholder="Username" autofocus required>
+		<input id="password" type="password" placeholder="*********" required>
+	</fieldset>
+	<fieldset id="actions">
+		<input type="button" onclick="login()" id="submit" value="Log in">
+		<a href="/users/resetpassword">Forgot your password?</a><a href="/users/register">Register</a>
+	</fieldset>
+</form>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/javascript/cookie_helper.js"></script>
+<script src="/javascript/login.js"></script>
+</body>
+</html>

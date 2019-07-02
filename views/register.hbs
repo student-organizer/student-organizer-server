@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+	<title>{{title}}</title>
+	<link rel="stylesheet" type="text/css" href="/stylesheets/login.css"/>
+</head>
+
+<body>
+
+<form id="register" onsubmit="register()">
+	<h1>Register</h1>
+	<fieldset id="inputs">
+		<input id="username" type="text" placeholder="Username" autofocus required>
+		<input id="password" type="password" placeholder="Password" required>
+		<input id="confirm" type="password" placeholder="Confirm password" required>
+	</fieldset>
+	<fieldset id="actions">
+		<input type="button" onclick="register()" id="submit" value="Register">
+		<a href="/users/login/">Already have an account?</a>
+	</fieldset>
+</form>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/javascript/cookie_helper.js"></script>
+<script src="/javascript/register.js"></script>
+</body>
+</html>

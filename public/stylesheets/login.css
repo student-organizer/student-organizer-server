@@ -1,0 +1,130 @@
+
+
+html, body
+{
+	height: 100%;
+}
+
+body
+{
+	font: 12px Arial, Helvetica;
+	margin: 0;
+	background-color: #487eb0;
+}
+
+
+#login
+{
+	background-color: #fff;
+	height: 240px;
+	width: 400px;
+	margin: -150px 0 0 -230px;
+	padding: 30px;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	z-index: 0;
+	-moz-border-radius: 1em;
+	-webkit-border-radius: 1em;
+	border-radius: 1em;
+}
+
+#register
+{
+	background-color: #fff;
+	height: 290px;
+	width: 400px;
+	margin: -150px 0 0 -230px;
+	padding: 30px;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	z-index: 0;
+	-moz-border-radius: 1em;
+	-webkit-border-radius: 1em;
+	border-radius: 1em;
+}
+
+
+h1
+{
+	text-transform: uppercase;
+	text-align: center;
+	color: #131313;
+	margin: 0 0 30px 0;
+	letter-spacing: 4px;
+	font: normal 26px/1 Arial, Helvetica;
+	position: relative;
+	text-shadow: 1px 1px 1px black;
+}
+
+
+fieldset
+{
+	border: 0;
+	padding: 0;
+	margin: 0;
+}
+
+#inputs input
+{
+	padding: 15px 15px 15px 30px;
+	margin: 0 0 10px 0;
+	width: 353px;
+	border: 1px solid #ccc;
+
+	-moz-border-radius: 2em;
+	-webkit-border-radius: 2em;
+	border-radius: 2em;
+}
+
+#username
+{
+	background-position: 5px -2px !important;
+}
+
+#password
+{
+	background-position: 5px -52px !important;
+}
+
+#inputs input:focus
+{
+	background-color: #fff;
+	border-color: #e8c291;
+}
+
+/*--------------------*/
+#actions
+{
+	margin: 25px 0 0 0;
+}
+
+#submit
+{
+
+	cursor: pointer;
+	background-color: #ffb94b;
+
+	-moz-border-radius: 0.5em;
+	-webkit-border-radius: 0.5em;
+	border-radius: 0.5em;
+
+	border-width: 1px;
+	border-style: solid;
+	border-color: #d69e31;
+
+	float: left;
+	height: 35px;
+	padding: 0;
+	width: 120px;
+	font: bold 15px Arial, Helvetica;
+}
+
+#actions a
+{
+	color: #3151A2;
+	float: right;
+	line-height: 35px;
+	margin-left: 10px;
+}
