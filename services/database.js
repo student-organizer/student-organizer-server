@@ -1,5 +1,6 @@
 var mongoclient = require('mongodb').MongoClient;
 var url = require('../config.json').mongodburl;
+var cr = require('./chatroom.js');
 var client = undefined;
 
 /**
@@ -176,6 +177,61 @@ module.exports.removeFriend = async function(user, friend)
         {"username": user},
         {
             $set: {"friends": friends_new},
+        }
+    );
+}
+
+/**
+ * Adds a chatroom to the database
+ *
+ * @param chatroom: chatroom object
+ */
+module.exports.createChatroom = function(chatroom)
+{
+    var dbo = client.db("studentorganizer");
+    var myobj = {timestamp: chatroom.timestamp, members: chatroom.members, messages: chatroom.messages, name: chatroom.name, id: chatroom.id};
+    dbo.collection("chatrooms").insertOne(myobj, function(err, res)
+    {
+        if (err) throw error;
+        console.log("\x1b[32m%s\x1b[0m", "Chatroom" + "-" + chatroom.id + " has been created on the database.")
+    });
+}
+
+/**
+ * Gets chatroom data by given id
+ *
+ * @param chatroom_id: unique identifier for a chatroom
+ * @returns chatroom object
+ */
+module.exports.getChatroom = async function(chatroom_id)
+{
+    return new Promise(function(resolve, reject)
+    {
+        var dbo = client.db("studentorganizer");
+        var query = { id: chatroom_id };
+        dbo.collection("chatrooms").find(query).toArray(function(err, result)
+        {
+            if (err) throw error;
+            var ret = new cr.Chatroom(result[0].timestamp, result[0].members, result[0].messages, result[0].name, result[0].id);
+            resolve(ret);
+        });
+    });
+}
+
+/**
+ * Updates a chatroom on the database
+ *
+ * @param chatroom_id: unique identifier for a chatroom
+ * @param chatroom_updated: chatroom object that is supposed to replace the old one
+ */
+module.exports.updateChatroom = function(chatroom_id, chatroom_updated)
+{
+    var dbo = client.db("studentorganizer");
+    dbo.collection("chatrooms").updateOne
+    (
+        {"id": chatroom_id},
+        {
+            $set: {"members": chatroom_updated.members, "messages": chatroom_updated.messages, "name": chatroom_updated.name},
         }
     );
 }
