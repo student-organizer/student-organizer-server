@@ -28,6 +28,12 @@
 <p>Friendlist:</p>
 <ul id="friendlist">
 </ul>
+<form id="acceptfriendrequest">
+    <p>Open friendrequests:</p>
+    <ul id="friendrequests">
+    </ul>
+    <button>Accept friendrequest</button>
+</form>
 <script src="/socket.io/socket.io.js"></script>
 <script>
 	var socket = io();
@@ -77,6 +83,44 @@
             return;
 
         socket.emit('addfriend', user_selected);
+    });
+
+    // Lists friendrequests
+    socket.on('friendrequests', friendrequests =>
+    {
+        recent_friendrequests = friendrequests;
+        let counter = 0;
+        $('#friendrequests').empty();
+        friendrequests.forEach(function(friendrequest)
+        {
+            counter++;
+            let elem = $('<li>').html("(" + counter + ") " + friendrequest.requester + ' wants to add you');
+            $('#friendrequests').append(elem);
+        });
+
+        // List to choose for friendrequests
+        $("#friendrequests li").click(function()
+        {
+            $("#friendrequests li").css("color","inherit");
+            $(this).css("color","green");
+            console.log(this.textContent);
+            let friendrequest_selected = this.textContent;
+
+            // Click accept
+            $('#acceptfriendrequest').submit(event =>
+            {
+                event.preventDefault();
+
+                if (friendrequest_selected === '')
+                    return;
+
+                var array_idx = parseInt(friendrequest_selected.charAt(1));
+                var friendrequest = friendrequests[array_idx - 1];
+                friendrequest.status = 'accepted';
+
+                socket.emit('answer friendrequest', friendrequest);
+            });
+        });
     });
 
     //Gets recent friendlist

@@ -115,7 +115,8 @@ module.exports.findUsers = function(searchquery, user_toexclude)
         {
             var users = [];
 
-            result.forEach(function(user){
+            result.forEach(function(user)
+            {
                 if (user.username === user_toexclude)
                     return;
 
@@ -235,6 +236,136 @@ module.exports.updateChatroom = function(chatroom_id, chatroom_updated)
         }
     );
 }
+
+/**
+ * Checks whether Chatroom with specific id already exists
+ *
+ * @param chatroom_id: unique identifier for a chatroom
+ * @returns whether chatroom exists or not
+ */
+module.exports.isChatroomExisting = function(chatroom_id)
+{
+    return new Promise(function(resolve, reject)
+    {
+        var dbo = client.db("studentorganizer");
+        var query = { id: chatroom_id };
+        dbo.collection("chatrooms").find(query).toArray(function(err, result)
+        {
+            if (result == "") resolve(false);
+            if (result != "") resolve(true);
+        });
+    });
+}
+
+/**
+ * Creates a friendrequest
+ *
+ * @param requester: user who initiated the adding process
+ * @param recipient: user who receives the friendrequest from the requester
+ */
+module.exports.createFriendrequest = function(id, requester, recipient)
+{
+    var dbo = client.db("studentorganizer");
+    var myobj = {status: 'send', timestamp: Date.now(), requester: requester, recipient: recipient, id: id};
+    dbo.collection("friendrequests").insertOne(myobj, function(err, res)
+    {
+        if (err) throw error;
+        console.log("\x1b[32m%s\x1b[0m", "Friendrequest from " + requester + " towards " + recipient + " has been created on the database.")
+    });
+}
+
+/**
+ * Gets data from a friendrequest dataset
+ *
+ * @param friendrequest_id: unique identifier for each friendrequest
+ * @returns status, requester and recipient from the friend request
+ */
+module.exports.getFriendrequestData = async function(friendrequest_id)
+{
+    return new Promise(function(resolve, reject)
+    {
+        var dbo = client.db("studentorganizer");
+        var query = { id: friendrequest_id };
+        dbo.collection("friendrequests").find(query).toArray(function(err, result)
+        {
+            if (err) throw error;
+
+            var ret = { status: result[0].status, requester: result[0].requester, recipient: result[0].recipient };
+            resolve(ret);
+        });
+    });
+}
+
+/**
+ * Gets open friendrequests for user
+ *
+ * @param username: unique identifier for an user
+ * @returns array of specific friendrequests
+ */
+module.exports.getFriendrequestsforUser = function(username)
+{
+    return new Promise(function(resolve, reject)
+    {
+        var dbo = client.db("studentorganizer");
+        var query = { recipient: username };
+        dbo.collection("friendrequests").find(query).toArray(function(err, result)
+        {
+            if (err) throw error;
+
+            var ret = [];
+            for (let i = 0; i < result.length; i++)
+            {
+                if (result[i].status == 'send')
+                {
+                    ret.push(result[i]);
+                }
+            }
+
+            resolve(ret);
+        });
+    });
+}
+
+/**
+ * Updates the status of a friendrequest
+ *
+ * @param friendrequest_id: unique identifier for each friendrequest
+ * @param status: can be 'send' 'denied' or 'accepted'
+ */
+module.exports.updateFriendrequest = function(friendrequest_id, status)
+{
+    var dbo = client.db("studentorganizer");
+    dbo.collection("friendrequests").updateOne
+    (
+        {"id": friendrequest_id},
+        {
+            $set: {"status": status},
+        }
+    );
+}
+
+/**
+ * Checks whether a friendrequest was already set to one user or not
+ *
+ * @param friendrequest_id: unique identifier for each friendrequest
+ * @returns whether friendrequest exists or not
+ */
+module.exports.isFriendrequestExisting = async function(friendrequest_id)
+{
+    return new Promise(function(resolve, reject)
+    {
+        var dbo = client.db("studentorganizer");
+        var query = { id: friendrequest_id };
+        dbo.collection("friendrequests").find(query).toArray(function(err, result)
+        {
+            if (result == "") resolve(false);
+            if (result != "") resolve(true);
+        });
+    });
+}
+
+
+
 
 
 

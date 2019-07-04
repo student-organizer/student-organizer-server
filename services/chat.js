@@ -1,7 +1,10 @@
 let auth = require('./auth.js');
 let db = require('./database.js');
+let uuidv1 = require('uuid/v1');
+let cr = require('./chatroom.js');
 
-let recent_msgs = []
+let sockets = {};
+let recent_msgs = [];
 let io;
 
 /**
@@ -44,8 +47,8 @@ function onConnection(socket)
 	 */
 	socket.on('auth', async token =>
 	{
-
 		let user = auth.validate(token);
+		sockets[user.signedInAs] = socket;
 
 		/**
 		 * Checks whether user is authentificated
@@ -53,29 +56,72 @@ function onConnection(socket)
 		if(user != null)
 		{
 			/**
-			 * Adds a friend to the user's friendlist
+			 * Send a friendrequest to an user
 			 */
 			socket.on('addfriend', async friend =>
 			{
 				var userdata = await db.getUserData(user.signedInAs);
 				var friends = userdata.friends;
 
-				for (var i = 0; i < friends.length; i++)
+				for (let i = 0; i < friends.length; i++)
 				{
 					if (friends[i] == friend)
 						return;
 				}
 
-				await db.addFriend(user.signedInAs, friend);
+				await db.createFriendrequest(uuidv1(), user.signedInAs, friend);
 
-				userdata = await db.getUserData(user.signedInAs);
-				friends = userdata.friends;
+				var friendrequests_friend = await db.getFriendrequestsforUser(friend);
 
-				socket.emit('friendlist', friends);
+				if (typeof sockets[friend] !== 'undefined')
+				{
+					sockets[friend].emit('friendrequests', friendrequests_friend);
+				}
 			});
 
 			/**
-			 * Sends most recent messages to user
+			 * Client accepts or denies friendrequest
+			 */
+			socket.on('answer friendrequest', async data =>
+			{
+				var dbstatus = await db.getFriendrequestData(data.id);
+
+				if (data.status == 'send' || dbstatus.status != 'send')
+					return;
+
+				if (data.status == 'accepted')
+				{
+					await db.updateFriendrequest(data.id, 'accepted');
+					await db.addFriend(user.signedInAs, data.requester);
+					await db.addFriend(data.requester, user.signedInAs);
+					var chatroom = new cr.Chatroom(Date.now(), [user.signedInAs, data.requester], [], 'Chat: ' + user.signedInAs + "," + data.requester, uuidv1());
+					await db.createChatroom(chatroom);
+				}
+
+				if (data.status == 'denied')
+				{
+					await db.updateFriendrequest(data.id, 'denied');
+				}
+
+				var userdata = await db.getUserData(user.signedInAs);
+				var friends = userdata.friends;
+				var friendrequests = await db.getFriendrequestsforUser(user.signedInAs);
+				socket.emit('friendlist', friends);
+				socket.emit('friendrequests', friendrequests);
+
+				var requesterdata = await db.getUserData(data.requester);
+				var friends_requester = requesterdata.friends;
+				var friendrequests_requester = await db.getFriendrequestsforUser(data.requester);
+
+				if (typeof sockets[data.requester] !== 'undefined')
+				{
+					sockets[data.requester].emit('friendlist', friends_requester);
+					sockets[data.requester].emit('friendrequests', friendrequests_requester);
+				}
+			});
+
+			/**
+			 * Searches for users in the database
 			 */
 			socket.on('searchuser', async searchquery =>
 			{
@@ -97,8 +143,16 @@ function onConnection(socket)
 				recent_msgs.push(message);
 
 				//Clear any old messages
-				if(recent_msgs.length>50)
+				if(recent_msgs.length > 50)
 					recent_msgs.splice(0, recent_msgs.length-50)
+			});
+
+			/**
+			 * Deletes client from object of connected users
+			 */
+			socket.on('disconnect', function()
+			{
+				sockets[user.signedInAs] = undefined;
 			});
 
 			/**
@@ -107,6 +161,12 @@ function onConnection(socket)
 			var userdata = await db.getUserData(user.signedInAs);
 			var friends = userdata.friends;
 			socket.emit('friendlist', friends);
+
+			/**
+			 * Sends friendrequests after auth
+			 */
+			var friendrequests = await db.getFriendrequestsforUser(user.signedInAs);
+			socket.emit('friendrequests', friendrequests);
 
 			/**
 			 * Sends most recent messages to client
@@ -127,4 +187,4 @@ module.exports.serve = function(http)
 {
 	io = require('socket.io')(http);
 	io.on('connection', onConnection);
-}
+};
